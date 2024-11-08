@@ -56,7 +56,8 @@ jobs:
             --from-literal=DB_PORT=${{ secrets.DB_PORT }} \
             --from-literal=POSTGRES_DB=${{ secrets.DB_NAME }} \
             --from-literal=POSTGRES_USER=${{ secrets.DB_USER }} \
-            --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+            --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --dry-run=client -o yaml | kubectl apply -f -
 
       - name: Deploy dos manifestos no Kubernetes
         uses: Azure/k8s-deploy@v5
