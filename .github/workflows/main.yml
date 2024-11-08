@@ -2,8 +2,7 @@ name: CI-CD
 
 on:
   push:
-    # just for test
-    branches: ['**']
+    branches: ['main']
   workflow_dispatch:
 jobs:
   ci:
