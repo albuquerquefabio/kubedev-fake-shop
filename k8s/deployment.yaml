@@ -72,7 +72,7 @@ spec:
     spec:
       containers:
         - name: fake-shop
-          image: albuquerquefabio/kubedev-fake-shop:latest
+          image: albuquerquefabio/kubedev-fake-shop
           ports:
             - containerPort: 5000
           resources:
