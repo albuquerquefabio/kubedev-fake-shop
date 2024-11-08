@@ -31,6 +31,10 @@ jobs:
   cd:
     runs-on: ubuntu-latest
     needs: [ci]
+    permissions:
+      id-token: write
+      contents: read
+      actions: read
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -41,5 +45,23 @@ jobs:
 
       - name: Configurar o kubectl
         run: aws eks update-kubeconfig --name ${{vars.AWS_EKS_CLUSTER_NAME}} --region us-east-1
+
+      - name: Criar Kubernetes Secrets
+        run: |
+          kubectl create secret generic ${{ vars.KUBECTL_SECRETS }} \
+            --from-literal=DB_HOST=${{ secrets.DB_HOST }} \
+            --from-literal=DB_USER=${{ secrets.DB_USER }} \
+            --from-literal=DB_PASSWORD=${{ secrets.DB_PASSWORD }} \
+            --from-literal=DB_NAME=${{ secrets.DB_NAME }} \
+            --from-literal=DB_PORT=${{ secrets.DB_PORT }} \
+            --from-literal=POSTGRES_DB=${{ secrets.DB_NAME }} \
+            --from-literal=POSTGRES_USER=${{ secrets.DB_USER }} \
+            --from-literal=POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
+
       - name: Deploy dos manifestos no Kubernetes
-        run: echo "Executando o comando kubectl apply"
+        uses: Azure/k8s-deploy@v5
+        with:
+          manifests: |
+            ./k8s/deployment.yaml
+          images: |
+            albuquerquefabio/kubedev-fake-shop:v${{ github.run_number }}
