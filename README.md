@@ -24,6 +24,10 @@ POSTGRES_DB=Nome do banco de dados PostgreSQL.
 POSTGRES_USER=Nome do usuário do banco de dados PostgreSQL.
 
 POSTGRES_PASSWORD=Senha do usuário do banco de dados PostgreSQL.
+
+#Grafana
+GF_SECURITY_ADMIN_USER=Nome do usuário do Grafana. String ou Base64
+GF_SECURITY_ADMIN_PASSWORD=Senha do usuário do Grafana. String ou Base64
 ```
 
 ## AWS
@@ -58,7 +62,9 @@ aws cloudformation delete-stack --stack-name <stack-name> --region <your-region>
 
 ### AWS EKS
 
-#### Criar cluster
+#### Configurar local `kubectl`
+
+Rodas o comando após criar o EKS Cluster.
 
 ```sh
 aws eks update-kubeconfig --name <cluster-name> --region us-east-1
@@ -166,12 +172,14 @@ Os itens a seguir podem gerar cobranças caso permaneçam ativos: CloudFormation
 
 ```sh
 kubectl create secret generic aula-secrets --from-env-file=.env
+kubectl create secret generic grafana-secrets --from-env-file=.env
 ```
 
 #### Subir pods (deployment | service):
 
 ```sh
 kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/deploy-prometheus.yaml
 ```
 
 #### Detalhes:
