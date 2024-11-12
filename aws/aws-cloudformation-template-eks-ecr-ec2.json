@@ -1,0 +1,160 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Resources": {
+    "ECRRepository": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "RepositoryName": "my-container-repo"
+      }
+    },
+    "EksCluster": {
+      "Type": "AWS::EKS::Cluster",
+      "Properties": {
+        "Name": "MyEKSCluster",
+        "RoleArn": {
+          "Fn::GetAtt": [
+            "EksClusterRole",
+            "Arn"
+          ]
+        },
+        "ResourcesVpcConfig": {
+          "SubnetIds": [
+            {
+              "Ref": "SubnetId1"
+            },
+            {
+              "Ref": "SubnetId2"
+            }
+          ],
+          "SecurityGroupIds": [
+            {
+              "Ref": "EksSecurityGroup"
+            }
+          ]
+        }
+      }
+    },
+    "EksClusterRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "eks.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "Policies": [
+          {
+            "PolicyName": "EksClusterPolicy",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": [
+                    "ec2:DescribeInstances",
+                    "ec2:DescribeSecurityGroups",
+                    "ec2:DescribeSubnets",
+                    "ec2:DescribeVpcs",
+                    "elasticloadbalancing:*",
+                    "iam:PassRole",
+                    "eks:DescribeCluster",
+                    "eks:ListUpdates",
+                    "eks:UpdateClusterConfig",
+                    "eks:UpdateClusterVersion",
+                    "eks:ListClusters",
+                    "eks:CreateNodegroup",
+                    "eks:DescribeNodegroup"
+                  ],
+                  "Resource": "*"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "EksSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow EKS cluster communication",
+        "SecurityGroupEgress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "IpProtocol": "-1"
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "CidrIp": "0.0.0.0/0",
+            "IpProtocol": "tcp",
+            "FromPort": 0,
+            "ToPort": 65535
+          }
+        ]
+      }
+    },
+    "EC2Instance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "t2.micro",
+        "KeyName": "your-ssh-key-name",
+        "SecurityGroupIds": [
+          {
+            "Ref": "EksSecurityGroup"
+          }
+        ],
+        "ImageId": "ami-0c55b159cbfafe1f0",
+        "AvailabilityZone": "us-east-1a"
+      }
+    },
+    "SubnetId1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": "vpc-5d6b8697",
+        "CidrBlock": "172.31.128.0/20",
+        "AvailabilityZone": "us-east-1a"
+      }
+    },
+    "SubnetId2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": "vpc-5d6b8697",
+        "CidrBlock": "172.31.144.0/20",
+        "AvailabilityZone": "us-east-1b"
+      }
+    }
+  },
+  "Outputs": {
+    "ECRRepositoryUri": {
+      "Description": "URI of the ECR repository",
+      "Value": {
+        "Fn::GetAtt": [
+          "ECRRepository",
+          "RepositoryUri"
+        ]
+      }
+    },
+    "EksClusterName": {
+      "Description": "EKS Cluster Name",
+      "Value": {
+        "Ref": "EksCluster"
+      }
+    },
+    "EksClusterEndpoint": {
+      "Description": "EKS Cluster Endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "EksCluster",
+          "Endpoint"
+        ]
+      }
+    }
+  }
+}
